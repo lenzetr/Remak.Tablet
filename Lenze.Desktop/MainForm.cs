@@ -1,0 +1,277 @@
+﻿using Lenze.Desktop.Extensions;
+using Lenze.Desktop.Helpers;
+using Lenze.Desktop.Services;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
+using System.Linq;
+using System.Windows.Forms;
+using Lenze.Desktop.View;
+using Org.BouncyCastle.Crypto.Tls;
+
+namespace Lenze.Desktop
+{
+    public partial class MainForm : Form
+    {
+        #region Initialize
+
+        private readonly BackgroundWorker _worker = new BackgroundWorker();
+
+        public MainForm()
+        {
+            InitializeComponent();
+
+            StartPosition = FormStartPosition.CenterScreen;
+#if !DEBUG
+            FormBorderStyle = FormBorderStyle.None;
+            WindowState = FormWindowState.Maximized;
+            TopMost = true;
+
+#endif
+            //errorImage.Visible = false;
+
+            _worker.DoWork += WorkerOnDoWork;
+
+            var bg = new Background(BgRefresh);
+            bg.Initialize(500);
+            bg.Start();
+        }
+
+        #endregion
+
+        #region Load Function
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            if (!_worker.IsBusy) _worker.RunWorkerAsync();
+
+            var buttons = this.GetAllCtls(typeof(GlassButton)).ToList().Where(item => item.Name != "btnExit");
+            foreach (var item in buttons) item.Click += Buttons_Click;
+        }
+
+        private void Buttons_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var button = (GlassButton) sender;
+                ProgessButtonFunction(button);
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+                Notify.Show(exception.Message, "Hata!", ToolTipIcon.Error);
+
+                Global.ErrorList.Add(
+                    new ErrorList { Module = "Buttons Click", Name = "Error", Message = exception.Message, Exception = exception.ToString() }
+                );
+            }
+        }
+
+        #endregion
+
+        #region Buttons
+
+        private void Exitbtn_Click(object sender, EventArgs e)
+        {
+            var result = MessageBox.Show(this, @"Kapatmak istediğinize eminmisiniz?", "UYARI!",
+                MessageBoxButtons.OKCancel, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+            if (result == DialogResult.OK) Close();
+        }
+
+        #endregion
+
+        #region Workers
+
+        private bool[] _actuelButtonsArray;
+        private double[] _actuelLrealArray;
+
+        private void BgRefresh()
+        {
+            try
+            {
+                errorImage.Visible = Global.ErrorList.Count > 0;
+
+                if (!Client.ConnectionStatus) return;
+
+                _actuelButtonsArray = Client.GetActValButtonsArray();
+                _actuelLrealArray = Client.GetActValLREALArray();
+
+                if (_actuelButtonsArray.Length <= 0 || _actuelLrealArray.Length <= 0) return;
+                LoadVariable();
+
+                lbl_Print_OperatorSide_Proxmty.Text = _actuelLrealArray[1].ToString("#.00").Replace(",", ".");
+                lbl_Anilox_OperatorSide_Proxmty.Text = _actuelLrealArray[2].ToString("#.00").Replace(",", ".");
+                lbl_Print_DriveSide_Proxmty.Text = _actuelLrealArray[3].ToString("#.00").Replace(",", ".");
+                lbl_Anilox_DriveSide_Proxmty.Text = _actuelLrealArray[4].ToString("#.00").Replace(",", ".");
+                lbl_SideRegisterPosition_Actual.Text = _actuelLrealArray[5].ToString("#.00").Replace(",", ".");
+                lbl_LengthRegisterPosition_Actuel.Text = _actuelLrealArray[6].ToString("#.00").Replace(",", ".");
+
+                machineSpeed.Text = GeneralInfo.iMachineSpeed.ToString(CultureInfo.InvariantCulture);
+                actuelMeter.Text = GeneralInfo.rMachineCounterMeter.ToString(CultureInfo.InstalledUICulture);
+
+
+                if (GetActiveButton(_actuelButtonsArray) > 5)
+                {
+                    lbl_SideRight.Text = "OPERATOR SIDE";
+                    lbl_SideLeft.Text = "DRIVE SIDE";
+                }
+                else
+                {
+                    lbl_SideLeft.Text = "OPERATOR SIDE";
+                    lbl_SideRight.Text = "DRIVE SIDE";
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Notify.Show(ex.Message, "Hata!", ToolTipIcon.Error);
+                Tools.log.Error("BgRefresh", ex);
+
+                Global.ErrorList.Add(
+                    new ErrorList { Module = "BgRefresh", Name = "Error", Message = ex.Message, Exception = ex.ToString() }
+                );
+            }
+        }
+
+        private void WorkerOnDoWork(object sender, DoWorkEventArgs doWorkEventArgs)
+        {
+            using (var waitForm = new WaitFormTransparent(delegate
+            {
+                try
+                {
+
+                    Client.UaConnection();
+                }
+                catch (Exception xException)
+                {
+                    Console.WriteLine(xException);
+                    //labelBottom.Text = xException.Message;
+                    Notify.Show(xException.Message, "Hata!", ToolTipIcon.Error);
+
+                    Global.ErrorList.Add(
+                        new ErrorList { Module = "Connection", Name = "Connection Error", Message = xException.Message, Exception = xException.ToString() }
+                    );
+                }
+                finally
+                {
+                    if (Client.ConnectionStatus)
+                    {
+                        //labelBottom.Text = @"Connect";
+                    }
+                    else
+                    {
+                        Notify.Show("PLC bağlantısı kurulamadı Lütfen bağlantınızı kontrol ederek tekar deneyiniz.",
+                            "Dikkat!", ToolTipIcon.Error, (o, args) => _worker.RunWorkerAsync());
+                    }
+
+
+                }
+
+            }, "PLC bağlanıyor lütfen bekleyiniz...."))
+            {
+                waitForm.ShowDialog(this);
+            }
+
+
+        }
+
+        #endregion
+
+        #region Functions
+
+        private static void ProgessButtonFunction(GlassButton selectButton)
+        {
+            if (selectButton.Variable == null) return;
+            Client.SetButtonsValue(selectButton.Variable, true);
+            Client.SetButtonsValue(selectButton.Variable, false);
+
+            /*
+            switch (selectButton.Name)
+            {
+                case "switchBtn1":
+                    lbl_SideLeft.Text = "OPERATOR SIDE";
+                    lbl_SideRight.Text = "DRIVE SIDE";
+                    break;
+                case "switchBtn2":
+                    lbl_SideLeft.Text = "OPERATOR SIDE";
+                    lbl_SideRight.Text = "DRIVE SIDE";
+                    break;
+                case "switchBtn3":
+                    lbl_SideLeft.Text = "OPERATOR SIDE";
+                    lbl_SideRight.Text = "DRIVE SIDE";
+                    break;
+                case "switchBtn4":
+                    lbl_SideLeft.Text = "OPERATOR SIDE";
+                    lbl_SideRight.Text = "DRIVE SIDE";
+                    break;
+                case "switchBtn5":
+                    lbl_SideRight.Text = "OPERATOR SIDE";
+                    lbl_SideLeft.Text = "DRIVE SIDE";
+                    break;
+                case "switchBtn6":
+                    lbl_SideRight.Text = "OPERATOR SIDE";
+                    lbl_SideLeft.Text = "DRIVE SIDE";
+                    break;
+                case "switchBtn7":
+                    lbl_SideRight.Text = "OPERATOR SIDE";
+                    lbl_SideLeft.Text = "DRIVE SIDE";
+                    break;
+                case "switchBtn8":
+                    lbl_SideRight.Text = "OPERATOR SIDE";
+                    lbl_SideLeft.Text = "DRIVE SIDE";
+                    break;
+                default:
+                    lbl_SideLeft.Text = "OPERATOR SIDE";
+                    lbl_SideRight.Text = "DRIVE SIDE";
+                    break;
+            }*/
+        }
+
+        private void LoadVariable()
+        {
+            var buttons = this.GetAllCtls(typeof(GlassButton)).ToList();
+            if (buttons.Count <= 0) return;
+            foreach (var btn in buttons.Where(item => item.GetType() == typeof(GlassButton)).Cast<GlassButton>())
+            {
+                if (!string.IsNullOrEmpty(btn.Variable))
+                {
+                    btn.BackColor = Tools.BooleanToColor(_actuelButtonsArray[Convert.ToInt16(btn.Variable)]);
+                    btn.ForeColor = Tools.BooleanToTextColor(_actuelButtonsArray[Convert.ToInt16(btn.Variable)]);
+                }
+
+                if (btn.Name == "btnExit") btn.Visible = GeneralInfo.xTabletMaintenance;
+            }
+        }
+
+        private static int GetActiveButton(IReadOnlyList<bool> actuelList)
+        {
+            var result = 0;
+            if (actuelList[30] == true)
+                result = 1;
+            else if (actuelList[31] == true)
+                result = 2;
+            else if (actuelList[32] == true)
+                result = 3;
+            else if (actuelList[33] == true)
+                result = 4;
+            else if (actuelList[34] == true)
+                result = 5;
+            else if (actuelList[35] == true)
+                result = 6;
+            else if (actuelList[36] == true)
+                result = 7;
+            else if (actuelList[37] == true) result = 8;
+
+            return result;
+        }
+
+        #endregion
+
+        private void ErrorImage_Click(object sender, EventArgs e)
+        {
+            var showErrorList = new ErrorListForm();
+            showErrorList.ShowDialog();
+        }
+    }
+}
