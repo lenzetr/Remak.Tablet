@@ -1,5 +1,6 @@
 ﻿using System;
 using Lenze.Desktop.Helpers;
+using Lenze.Desktop.Model;
 
 namespace Lenze.Desktop.Services
 {
@@ -18,7 +19,7 @@ namespace Lenze.Desktop.Services
                 }
                 catch (Exception ex)
                 {
-                    Global.ErrorList.Add(
+                    Global.ErrorToDatabase(
                         new ErrorList { Module = "xTabletMaintenance", Name = "Error", Message = ex.Message, Exception = ex.ToString() }
                     );
                 }

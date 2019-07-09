@@ -2,10 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Lenze.Desktop.Model;
 
 namespace Lenze.Desktop
 {
-    internal class Global
+    public class Global
     {
         public static string AppName { get; set; } = "RemakTablet";
         public static string SystemDrive { get; set; } = Path.GetPathRoot(Environment.SystemDirectory);
@@ -48,61 +49,12 @@ namespace Lenze.Desktop
             ErrorList.Add(log);
             Database.InsertErrorLog(log);
         }
-    }
 
-    internal class PlcConfiguration
-    {
-        public string IpAddress
+        public static void ErrorToDatabase(ErrorList list)
         {
-            get
-            {
-                var result = string.Empty;
-                try
-                {
-                    var databaseValue = Global.Database.GetSettingsValue("IpAddress");
-
-                    result = databaseValue;
-                }
-                catch (Exception)
-                {
-                    //
-                }
-
-                return result;
-            }
-
-            set => Global.Database.InsertSetting("IpAddress", value.ToString());
+            if (list == null) return;
+            ErrorList.Add(list);
+            Database.InsertErrorLog(list);
         }
-
-        public string Port
-        {
-            get
-            {
-                var result = string.Empty;
-                try
-                {
-                    var databaseValue = Global.Database.GetSettingsValue("Port");
-
-                    result = databaseValue;
-                }
-                catch (Exception)
-                {
-                    //
-                }
-
-                return result;
-            }
-
-            set => Global.Database.InsertSetting("Port", value.ToString());
-        }
-    }
-
-    public class ErrorList
-    {
-        public string Module { get; set; }
-        public string Name { get; set; }
-        public string Message { get; set; }
-        public string Exception { get; set; }
-        public DateTime Date { get; set; } = DateTime.Now;
     }
 }

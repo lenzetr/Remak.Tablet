@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
+using Lenze.Desktop.Model;
 
 namespace Lenze.Desktop.View
 {
@@ -69,7 +70,7 @@ namespace Lenze.Desktop.View
                 Notify.Show("PLC IP adresine ulaşılamıyor lütfen girmiş olduğunuz IP adresini ve PLC'nin çalışır durumda olduğunu kontrol ediniz.",
                     "Bağlantı Hatası", ToolTipIcon.Error);
 
-                Global.ErrorList.Add(
+                Global.ErrorToDatabase(
                     new ErrorList { Module = "Startup Test", Name = "Connection Error", Message = "PLC IP adresine ulaşılamıyor lütfen girmiş olduğunuz IP adresini ve PLC'nin çalışır durumda olduğunu kontrol ediniz.", Exception = "" }
                 );
 

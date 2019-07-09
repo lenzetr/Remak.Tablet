@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using Lenze.Desktop.Model;
 using Lenze.Desktop.Services;
 
 namespace Lenze.Desktop.View
@@ -53,7 +54,7 @@ namespace Lenze.Desktop.View
             }
             catch (Exception exception)
             {
-                Global.ErrorList.Add(
+                Global.ErrorToDatabase(
                     new ErrorList
                     {
                         Module = "ReConnection",

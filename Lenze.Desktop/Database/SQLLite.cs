@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
+using Lenze.Desktop.Model;
 
 namespace Lenze.Desktop.Database
 {

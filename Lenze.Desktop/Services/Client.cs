@@ -2,6 +2,7 @@
 using Lenze.Library.Opc.Ua;
 using Lenze.Library.Opc.Ua.Common;
 using System;
+using Lenze.Desktop.Model;
 
 namespace Lenze.Desktop.Services
 {
@@ -73,7 +74,7 @@ namespace Lenze.Desktop.Services
             {
                 Tools.log.Error("function GetActVal: ", ex);
 
-                Global.ErrorList.Add(
+                Global.ErrorToDatabase(
                     new ErrorList { Module = "GetActValButton", Name = "Error", Message = ex.Message, Exception = ex.ToString() }
                 );
             }
@@ -92,7 +93,7 @@ namespace Lenze.Desktop.Services
             }
             catch (Exception ex)
             {
-                Global.ErrorList.Add(
+                Global.ErrorToDatabase(
                     new ErrorList { Module = "GetActValButtonsArray", Name = "Error", Message = ex.Message, Exception = ex.ToString() }
                 );
             }
@@ -111,7 +112,7 @@ namespace Lenze.Desktop.Services
             }
             catch (Exception ex)
             {
-                Global.ErrorList.Add(
+                Global.ErrorToDatabase(
                     new ErrorList { Module = "GetActValLREALArray", Name = "Error", Message = ex.Message, Exception = ex.ToString() }
                 );
             }
@@ -134,7 +135,7 @@ namespace Lenze.Desktop.Services
             {
                 Tools.log.Error("function GetStatusVal: ", ex);
 
-                Global.ErrorList.Add(
+                Global.ErrorToDatabase(
                     new ErrorList { Module = "GetStatusVal", Name = "Error", Message = ex.Message, Exception = ex.ToString() }
                 );
             }
@@ -155,7 +156,7 @@ namespace Lenze.Desktop.Services
             {
                 Tools.log.Error("function GetStatusVal: ", ex);
 
-                Global.ErrorList.Add(
+                Global.ErrorToDatabase(
                     new ErrorList { Module = "GetStatusValArray", Name = "Error", Message = ex.Message, Exception = ex.ToString() }
                 );
             }
@@ -178,7 +179,7 @@ namespace Lenze.Desktop.Services
             {
                 Tools.log.Error("function GetSetVal: ", ex);
 
-                Global.ErrorList.Add(
+                Global.ErrorToDatabase(
                     new ErrorList { Module = "GetSetVal", Name = "Error", Message = ex.Message, Exception = ex.ToString() }
                 );
             }
@@ -199,7 +200,7 @@ namespace Lenze.Desktop.Services
             {
                 Tools.log.Error("function GetSetVal: ", ex);
 
-                Global.ErrorList.Add(
+                Global.ErrorToDatabase(
                     new ErrorList { Module = "GetSetValArray", Name = "Error", Message = ex.Message, Exception = ex.ToString() }
                 );
             }
@@ -222,7 +223,7 @@ namespace Lenze.Desktop.Services
             {
                 Tools.log.Error("function GetSetVal: ", ex);
 
-                Global.ErrorList.Add(
+                Global.ErrorToDatabase(
                     new ErrorList { Module = "SetButtonsValue", Name = "Error", Message = ex.Message, Exception = ex.ToString() }
                 );
             }
@@ -245,7 +246,7 @@ namespace Lenze.Desktop.Services
             {
                 Tools.log.Error("function GetStatusVal: ", ex);
 
-                Global.ErrorList.Add(
+                Global.ErrorToDatabase(
                     new ErrorList { Module = "GetControlVal", Name = "Error", Message = ex.Message, Exception = ex.ToString() }
                 );
             }
@@ -267,7 +268,7 @@ namespace Lenze.Desktop.Services
             {
                 Tools.log.Error("function GetStatusVal: ", ex);
 
-                Global.ErrorList.Add(
+                Global.ErrorToDatabase(
                     new ErrorList { Module = "SetControlVal", Name = "Error", Message = ex.Message, Exception = ex.ToString() }
                 );
             }
