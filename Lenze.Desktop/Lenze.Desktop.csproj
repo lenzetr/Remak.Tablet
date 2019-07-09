@@ -229,6 +229,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="favicon.ico" />
+    <Content Include="Lenze.Library.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Resources\5d23ae1143461853180553.gif" />
     <None Include="Resources\loader.gif" />
     <None Include="Resources\loadingv1.gif" />
