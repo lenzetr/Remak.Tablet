@@ -41,6 +41,18 @@ namespace Lenze.Desktop
 
         public static List<ErrorList> ErrorList { get; set; } = new List<ErrorList>();
 
+        public static void ErrorToDatabase (string module, string name, string message, Exception exc)
+        {
+            Global.ErrorList.Add(
+                    new ErrorList
+                    { Module = module, Name = name, Message = message, Exception = exc.ToString() }
+                );
+
+            Database.InsertErrorLog(new ErrorList
+            { Module = module, Name = name, Message = message, Exception = exc.ToString() });
+
+        }
+
 
     }
 
@@ -91,11 +103,12 @@ namespace Lenze.Desktop
         }
     }
 
-    internal class ErrorList
+    public class ErrorList
     {
         public string Module { get; set; }
         public string Name { get; set; }
         public string Message { get; set; }
         public string Exception { get; set; }
+        public DateTime Date { get; set; } = System.DateTime.Now;
     }
 }

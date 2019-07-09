@@ -62,16 +62,17 @@
     <SignManifests>true</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>5489C64A08EEAF7185B47E791E2F838B1D9A033F</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>45179AA90E59E60B2E72C8630FFAD539303243A0</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>Lenze.Desktop_TemporaryKey.pfx</ManifestKeyFile>
+    <ManifestKeyFile>
+    </ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>Lenze.Desktop_TemporaryKey.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>Remak.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>favicon.ico</ApplicationIcon>
@@ -232,6 +233,7 @@
     <Content Include="Lenze.Library.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="Remak.snk" />
     <None Include="Resources\5d23ae1143461853180553.gif" />
     <None Include="Resources\loader.gif" />
     <None Include="Resources\loadingv1.gif" />

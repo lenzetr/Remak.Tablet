@@ -78,13 +78,8 @@ namespace Lenze.Desktop
                 Console.WriteLine(exception);
                 Notify.Show(exception.Message, "Hata!", ToolTipIcon.Error);
 
-                Global.ErrorList.Add(
-                    new ErrorList
-                    {
-                        Module = "Buttons Click", Name = "Error", Message = exception.Message,
-                        Exception = exception.ToString()
-                    }
-                );
+                Global.ErrorToDatabase("Buttons Click", "Error", exception.Message, exception);
+                
             }
         }
 
@@ -135,10 +130,8 @@ namespace Lenze.Desktop
                 Notify.Show(ex.Message, "Hata!", ToolTipIcon.Error);
                 Tools.log.Error("BgRefresh", ex);
 
-                Global.ErrorList.Add(
-                    new ErrorList
-                        {Module = "BgRefresh", Name = "Error", Message = ex.Message, Exception = ex.ToString()}
-                );
+                Global.ErrorToDatabase("BgRefresh", "Error", ex.Message, ex);
+
             }
         }
 
@@ -156,13 +149,8 @@ namespace Lenze.Desktop
 
                     Notify.Show(xException.Message, "Hata!", ToolTipIcon.Error);
 
-                    Global.ErrorList.Add(
-                        new ErrorList
-                        {
-                            Module = "Connection", Name = "Connection Error", Message = xException.Message,
-                            Exception = xException.ToString()
-                        }
-                    );
+                    Global.ErrorToDatabase("Connection", "Connection Error", xException.Message,xException);
+
                 }
                 finally
                 {

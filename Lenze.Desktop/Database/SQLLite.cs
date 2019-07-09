@@ -96,6 +96,19 @@ namespace Lenze.Desktop.Database
                 tbSettings.Columns.Add(new SQLiteColumn("value"));
                 tbSettings.Columns.Add(new SQLiteColumn("status", ColType.Integer));
                 sh.CreateTable(tbSettings);
+
+
+
+                sh.DropTable("ErrorList");
+
+                var tbErrorList = new SQLiteTable("ErrorList");
+                tbErrorList.Columns.Add(new SQLiteColumn("id", true));
+                tbErrorList.Columns.Add(new SQLiteColumn("Module"));
+                tbErrorList.Columns.Add(new SQLiteColumn("Name"));
+                tbErrorList.Columns.Add(new SQLiteColumn("Message"));
+                tbErrorList.Columns.Add(new SQLiteColumn("Exception"));
+                tbErrorList.Columns.Add(new SQLiteColumn("Date",ColType.DateTime));
+                sh.CreateTable(tbErrorList);
             }
 
             firstOpenDb = false;
@@ -209,6 +222,29 @@ namespace Lenze.Desktop.Database
                 return sh.LastInsertRowId();
             }
         }*/
+
+        public long InsertErrorLog(ErrorList items)
+        {
+            using (SQLiteCommand cmd = new SQLiteCommand())
+            {
+                cmd.Connection = _connection;
+
+                var sh = new SQLiteHelper(cmd);
+
+                var dic = new Dictionary<string, object>
+                {
+                    ["Module"] = items.Module,
+                    ["Name"] = items.Name,
+                    ["Message"] = items.Message,
+                    ["Exception"] = items.Exception,
+                    ["Date"] = items.Date
+                };
+
+                sh.Insert("ErrorList", dic);
+
+                return sh.LastInsertRowId();
+            }
+        }
 
         public long InsertSetting(string nameVal, string valueVal)
         {
