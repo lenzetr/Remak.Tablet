@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using Lenze.Desktop.Helpers;
 using Lenze.Desktop.Services;
 
 namespace Lenze.Desktop.View
@@ -23,7 +22,6 @@ namespace Lenze.Desktop.View
         private void LoadList()
         {
             dataGridView1.DataSource = Global.ErrorList;
-            //dataGridView1.AutoResizeColumns();
 
             dataGridView1.Columns["Module"].Width = 150;
             dataGridView1.Columns["Name"].Width = 150;
@@ -33,7 +31,6 @@ namespace Lenze.Desktop.View
             dataGridView1.Update();
             dataGridView1.Refresh();
         }
-
 
         private void BtnCancel_Click(object sender, EventArgs e)
         {
@@ -48,15 +45,11 @@ namespace Lenze.Desktop.View
             dataGridView1.Refresh();
         }
 
-
         private void Connect()
         {
             try
             {
-                if (!Client.ConnectionStatus)
-                {
-                    Client.UaConnection();
-                }
+                if (!Client.ConnectionStatus) Client.UaConnection();
             }
             catch (Exception exception)
             {
@@ -88,6 +81,7 @@ namespace Lenze.Desktop.View
                 }
             }
         }
+
         private void BtnReConnection_Click(object sender, EventArgs e)
         {
             using (var waitForm = new WaitFormTransparent(Connect, "Yeniden bağlanıyor..."))

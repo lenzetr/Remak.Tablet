@@ -44,6 +44,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "WaitFormTransparent";
             this.TransparencyKey = System.Drawing.Color.Silver;
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.WaitFormTransparent_FormClosing);
             this.ResumeLayout(false);
 
         }

@@ -62,7 +62,7 @@
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.RowHeadersVisible = false;
             this.dataGridView1.ShowEditingIcon = false;
-            this.dataGridView1.Size = new System.Drawing.Size(1067, 508);
+            this.dataGridView1.Size = new System.Drawing.Size(1067, 549);
             this.dataGridView1.TabIndex = 24;
             // 
             // btnClear
@@ -87,10 +87,10 @@
             this.btnReConnection.BackColor = System.Drawing.Color.DodgerBlue;
             this.btnReConnection.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
             this.btnReConnection.ForeColor = System.Drawing.Color.White;
-            this.btnReConnection.Location = new System.Drawing.Point(12, 569);
+            this.btnReConnection.Location = new System.Drawing.Point(227, 621);
             this.btnReConnection.Name = "btnReConnection";
             this.btnReConnection.OnHoverBackColor = System.Drawing.Color.DarkOrchid;
-            this.btnReConnection.Size = new System.Drawing.Size(1067, 46);
+            this.btnReConnection.Size = new System.Drawing.Size(643, 46);
             this.btnReConnection.TabIndex = 23;
             this.btnReConnection.Text = "PLC\'ye Yeniden Bağlan";
             this.btnReConnection.UseVisualStyleBackColor = false;

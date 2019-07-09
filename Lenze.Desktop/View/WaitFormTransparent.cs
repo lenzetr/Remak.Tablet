@@ -7,20 +7,7 @@ namespace Lenze.Desktop.View
 {
     public partial class WaitFormTransparent : Form
     {
-        private WaitControl waitControl1;
-        private void AddControl(string message, string title)
-        {
-            this.waitControl1 = new Lenze.Desktop.View.WaitControl(message, title);
-            this.waitControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                                                                              | System.Windows.Forms.AnchorStyles.Left)
-                                                                             | System.Windows.Forms.AnchorStyles.Right)));
-            this.waitControl1.Location = new System.Drawing.Point(429, 310);
-            this.waitControl1.Name = "waitControl1";
-            this.waitControl1.Size = new System.Drawing.Size(391, 114);
-            this.waitControl1.TabIndex = 0;
-
-            this.Controls.Add(this.waitControl1);
-        }
+        private WaitControl _waitControl1;
 
         public WaitFormTransparent(Action worker)
         {
@@ -28,15 +15,11 @@ namespace Lenze.Desktop.View
             AddControl("İşleminiz gerçekleştiriliyor....", "Lütfen bekleyiniz...");
 
             SetStyle(ControlStyles.SupportsTransparentBackColor, true);
-            this.BackColor = Color.Transparent;
-            this.TransparencyKey = Color.Transparent; // I had to add this to get it to work.
+            BackColor = Color.Transparent;
+            TransparencyKey = Color.Transparent; // I had to add this to get it to work.
 
             Worker = worker ?? throw new ArgumentNullException();
         }
-
-        protected override void OnPaintBackground(PaintEventArgs e) { /* Ignore */ }
-
-        public Action Worker { get; set; }
 
         public WaitFormTransparent(Action worker, string message, string title)
         {
@@ -52,19 +35,42 @@ namespace Lenze.Desktop.View
             Worker = worker ?? throw new ArgumentNullException();
         }
 
+        public Action Worker { get; set; }
+
+        private void AddControl(string message, string title)
+        {
+            _waitControl1 = new WaitControl(message, title)
+            {
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom
+                                          | AnchorStyles.Left
+                                          | AnchorStyles.Right,
+                Location = new Point(429, 310),
+                Name = "waitControl1",
+                Size = new Size(391, 114),
+                TabIndex = 0
+            };
+
+            Controls.Add(_waitControl1);
+        }
+
+        protected override void OnPaintBackground(PaintEventArgs e)
+        {
+            /* Ignore */
+        }
+
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
+            TopMost = true;
+
             //Start new thread to run wait form dialog
-            Task.Factory.StartNew(Worker).ContinueWith(t => {
-                this.Close();
-            }, TaskScheduler.FromCurrentSynchronizationContext());
+            Task.Factory.StartNew(Worker)
+                .ContinueWith(t => { Close(); }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
-        protected override void OnClosed(EventArgs e)
+        private void WaitFormTransparent_FormClosing(object sender, FormClosingEventArgs e)
         {
-            base.OnClosed(e);
-            Worker = null;
+            TopMost = false;
         }
     }
 }

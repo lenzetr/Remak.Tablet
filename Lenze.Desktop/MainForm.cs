@@ -1,19 +1,35 @@
-﻿using Lenze.Desktop.Extensions;
-using Lenze.Desktop.Helpers;
-using Lenze.Desktop.Services;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using Lenze.Desktop.Extensions;
+using Lenze.Desktop.Helpers;
+using Lenze.Desktop.Services;
 using Lenze.Desktop.View;
-using Org.BouncyCastle.Crypto.Tls;
 
 namespace Lenze.Desktop
 {
     public partial class MainForm : Form
     {
+        #region Buttons
+
+        private void Exitbtn_Click(object sender, EventArgs e)
+        {
+            var result = MessageBox.Show(this, @"Kapatmak istediğinize eminmisiniz?", "UYARI!",
+                MessageBoxButtons.OKCancel, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+            if (result == DialogResult.OK) Close();
+        }
+
+        #endregion
+
+        private void ErrorImage_Click(object sender, EventArgs e)
+        {
+            var showErrorList = new ErrorListForm();
+            showErrorList.ShowDialog();
+        }
+
         #region Initialize
 
         private readonly BackgroundWorker _worker = new BackgroundWorker();
@@ -63,20 +79,13 @@ namespace Lenze.Desktop
                 Notify.Show(exception.Message, "Hata!", ToolTipIcon.Error);
 
                 Global.ErrorList.Add(
-                    new ErrorList { Module = "Buttons Click", Name = "Error", Message = exception.Message, Exception = exception.ToString() }
+                    new ErrorList
+                    {
+                        Module = "Buttons Click", Name = "Error", Message = exception.Message,
+                        Exception = exception.ToString()
+                    }
                 );
             }
-        }
-
-        #endregion
-
-        #region Buttons
-
-        private void Exitbtn_Click(object sender, EventArgs e)
-        {
-            var result = MessageBox.Show(this, @"Kapatmak istediğinize eminmisiniz?", "UYARI!",
-                MessageBoxButtons.OKCancel, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
-            if (result == DialogResult.OK) Close();
         }
 
         #endregion
@@ -90,7 +99,7 @@ namespace Lenze.Desktop
         {
             try
             {
-                errorImage.Visible = Global.ErrorList.Count > 0;
+                if (Global.ErrorList.Count > 0 && Client.ConnectionStatus == false) errorImage.Visible = true;
 
                 if (!Client.ConnectionStatus) return;
 
@@ -110,7 +119,6 @@ namespace Lenze.Desktop
                 machineSpeed.Text = GeneralInfo.iMachineSpeed.ToString(CultureInfo.InvariantCulture);
                 actuelMeter.Text = GeneralInfo.rMachineCounterMeter.ToString(CultureInfo.InstalledUICulture);
 
-
                 if (GetActiveButton(_actuelButtonsArray) > 5)
                 {
                     lbl_SideRight.Text = "OPERATOR SIDE";
@@ -121,7 +129,6 @@ namespace Lenze.Desktop
                     lbl_SideLeft.Text = "OPERATOR SIDE";
                     lbl_SideRight.Text = "DRIVE SIDE";
                 }
-
             }
             catch (Exception ex)
             {
@@ -129,7 +136,8 @@ namespace Lenze.Desktop
                 Tools.log.Error("BgRefresh", ex);
 
                 Global.ErrorList.Add(
-                    new ErrorList { Module = "BgRefresh", Name = "Error", Message = ex.Message, Exception = ex.ToString() }
+                    new ErrorList
+                        {Module = "BgRefresh", Name = "Error", Message = ex.Message, Exception = ex.ToString()}
                 );
             }
         }
@@ -140,17 +148,20 @@ namespace Lenze.Desktop
             {
                 try
                 {
-
                     Client.UaConnection();
                 }
                 catch (Exception xException)
                 {
                     Console.WriteLine(xException);
-                    //labelBottom.Text = xException.Message;
+
                     Notify.Show(xException.Message, "Hata!", ToolTipIcon.Error);
 
                     Global.ErrorList.Add(
-                        new ErrorList { Module = "Connection", Name = "Connection Error", Message = xException.Message, Exception = xException.ToString() }
+                        new ErrorList
+                        {
+                            Module = "Connection", Name = "Connection Error", Message = xException.Message,
+                            Exception = xException.ToString()
+                        }
                     );
                 }
                 finally
@@ -164,16 +175,11 @@ namespace Lenze.Desktop
                         Notify.Show("PLC bağlantısı kurulamadı Lütfen bağlantınızı kontrol ederek tekar deneyiniz.",
                             "Dikkat!", ToolTipIcon.Error, (o, args) => _worker.RunWorkerAsync());
                     }
-
-
                 }
-
             }, "PLC bağlanıyor lütfen bekleyiniz...."))
             {
                 waitForm.ShowDialog(this);
             }
-
-
         }
 
         #endregion
@@ -247,31 +253,25 @@ namespace Lenze.Desktop
         private static int GetActiveButton(IReadOnlyList<bool> actuelList)
         {
             var result = 0;
-            if (actuelList[30] == true)
+            if (actuelList[30])
                 result = 1;
-            else if (actuelList[31] == true)
+            else if (actuelList[31])
                 result = 2;
-            else if (actuelList[32] == true)
+            else if (actuelList[32])
                 result = 3;
-            else if (actuelList[33] == true)
+            else if (actuelList[33])
                 result = 4;
-            else if (actuelList[34] == true)
+            else if (actuelList[34])
                 result = 5;
-            else if (actuelList[35] == true)
+            else if (actuelList[35])
                 result = 6;
-            else if (actuelList[36] == true)
+            else if (actuelList[36])
                 result = 7;
-            else if (actuelList[37] == true) result = 8;
+            else if (actuelList[37]) result = 8;
 
             return result;
         }
 
         #endregion
-
-        private void ErrorImage_Click(object sender, EventArgs e)
-        {
-            var showErrorList = new ErrorListForm();
-            showErrorList.ShowDialog();
-        }
     }
 }

@@ -1,19 +1,19 @@
-﻿using Lenze.Desktop.Helpers;
-using Lenze.Desktop.View;
-using System;
+﻿using System;
 using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
+using Lenze.Desktop.Helpers;
+using Lenze.Desktop.View;
 
 namespace Lenze.Desktop
 {
-    static class Program
+    internal static class Program
     {
         /// <summary>
-        /// The main entry point for the application.
+        ///     The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Control.CheckForIllegalCrossThreadCalls = false;
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
@@ -41,7 +41,6 @@ namespace Lenze.Desktop
 
                     Application.Run(myContext);
                 }
-
             }
             catch (Exception e)
             {
@@ -52,47 +51,37 @@ namespace Lenze.Desktop
         }
 
         /// <summary>
-        /// Global exceptions in Non User Interfarce(other thread) antipicated error
+        ///     Global exceptions in Non User Interfarce(other thread) antipicated error
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private static void CurrentDomainOnUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            HandleException(((Exception)e.ExceptionObject));
-            /*var message =
-                String.Format(
-                    "Sorry, something went wrong.\r\n" + "{0}\r\n" + "{1}\r\n" + "please contact support.",
-                    ((Exception)e.ExceptionObject).Message, ((Exception)e.ExceptionObject).StackTrace);
-            MessageBox.Show(message, @"Unexpected error");*/
+            HandleException((Exception) e.ExceptionObject);
         }
 
         /// <summary>
-        /// Global exceptions in User Interfarce antipicated error
+        ///     Global exceptions in User Interfarce antipicated error
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private static void ApplicationThreadException(object sender, ThreadExceptionEventArgs e)
         {
             HandleException(e.Exception);
-            /*
-            var message =
-                String.Format(
-                    "Sorry, something went wrong.\r\n" + "{0}\r\n" + "{1}\r\n" + "please contact support.",
-                    e.Exception.Message, e.Exception.StackTrace);
-            MessageBox.Show(message, @"Unexpected error");*/
         }
 
         internal static void HandleException(Exception ex)
         {
-            string LF = Environment.NewLine + Environment.NewLine;
-            string title = $"Oups... I got a crash at {DateTime.Now}";
-            string infos = $"Please take a screenshot of this message\n\r\n\r" +
-                           $"Message : {LF}{ex.Message}{LF}" +
-                           $"Source : {LF}{ex.Source}{LF}" +
-                           $"Stack : {LF}{ex.StackTrace}{LF}" +
-                           $"InnerException : {ex.InnerException}";
+            var LF = Environment.NewLine + Environment.NewLine;
+            var title = $"Oups... I got a crash at {DateTime.Now}";
+            var infos = "Please take a screenshot of this message\n\r\n\r" +
+                        $"Message : {LF}{ex.Message}{LF}" +
+                        $"Source : {LF}{ex.Source}{LF}" +
+                        $"Stack : {LF}{ex.StackTrace}{LF}" +
+                        $"InnerException : {ex.InnerException}";
 
-            MessageBox.Show(infos, title, MessageBoxButtons.OK, MessageBoxIcon.Error); // Do logging of exception details
+            MessageBox.Show(infos, title, MessageBoxButtons.OK,
+                MessageBoxIcon.Error); // Do logging of exception details
         }
     }
 }
