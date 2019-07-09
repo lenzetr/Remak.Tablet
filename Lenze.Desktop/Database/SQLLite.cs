@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
 
@@ -9,15 +11,23 @@ namespace Lenze.Desktop.Database
 {
     public class SQLLite
     {
-        private SQLiteConnection _connection;
-        public SQLiteDataAdapter dataAdapter;
-        private SQLiteCommand _command;
+        #region Properties
 
-        public string AppName { get; set; } = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
-        private string MainDir { get; set; } = AppDomain.CurrentDomain.BaseDirectory;
+        public string AppName { get; set; } = Process.GetCurrentProcess().ProcessName;
+        private string MainDir { get; } = AppDomain.CurrentDomain.BaseDirectory;
         public string DatabaseName => Path.Combine(Global.DatabaseDirectory, $"{AppName}.db3");
+        public string DataSource => $"Data Source={DatabaseName};Version=3;";
 
-        public bool firstOpenDb = false;
+        private SQLiteCommand _command;
+        private readonly SQLiteConnection _connection;
+
+        public BindingSource bindingSource = new BindingSource();
+        public SQLiteDataAdapter dataAdapter;
+
+        public bool firstOpenDb;
+        #endregion
+
+        #region Initialize
 
         public SQLLite(string dbName = "")
         {
@@ -52,20 +62,25 @@ namespace Lenze.Desktop.Database
             }
             finally
             {
-                if (firstOpenDb)
-                {
-                    CreateDefaultTables();
-                }
+                if (firstOpenDb) CreateDefaultTables();
             }
         }
 
-        public string DataSource => $"Data Source={DatabaseName};Version=3;";
+        public SQLiteParameterCollection Parameters
+        {
+            get => _command.Parameters;
+            set
+            {
+                foreach (SQLiteParameter param in value)
+                    _command.Parameters.Add(param);
+            }
+        }
 
         public bool TestConnection()
         {
             try
             {
-                using (SQLiteConnection conn = new SQLiteConnection(DataSource))
+                using (var conn = new SQLiteConnection(DataSource))
                 {
                     conn.Open();
                     conn.Close();
@@ -79,6 +94,17 @@ namespace Lenze.Desktop.Database
                 return false;
             }
         }
+
+        public void OpenConnection()
+        {
+            _connection.Open();
+        }
+
+        public void CloseConnection()
+        {
+            _connection.Close();
+        }
+        #endregion
 
         private void CreateDefaultTables()
         {
@@ -98,7 +124,6 @@ namespace Lenze.Desktop.Database
                 sh.CreateTable(tbSettings);
 
 
-
                 sh.DropTable("ErrorList");
 
                 var tbErrorList = new SQLiteTable("ErrorList");
@@ -107,32 +132,14 @@ namespace Lenze.Desktop.Database
                 tbErrorList.Columns.Add(new SQLiteColumn("Name"));
                 tbErrorList.Columns.Add(new SQLiteColumn("Message"));
                 tbErrorList.Columns.Add(new SQLiteColumn("Exception"));
-                tbErrorList.Columns.Add(new SQLiteColumn("Date",ColType.DateTime));
+                tbErrorList.Columns.Add(new SQLiteColumn("Date", ColType.DateTime));
                 sh.CreateTable(tbErrorList);
             }
 
             firstOpenDb = false;
         }
 
-        public SQLiteParameterCollection Parameters
-        {
-            get => _command.Parameters;
-            set
-            {
-                foreach (SQLiteParameter param in value)
-                    _command.Parameters.Add(param);
-            }
-        }
-
-        public void OpenConnection()
-        {
-            _connection.Open();
-        }
-
-        public void CloseConnection()
-        {
-            _connection.Close();
-        }
+        #region SQL Functions
 
         public void Query(string sql)
         {
@@ -142,16 +149,14 @@ namespace Lenze.Desktop.Database
             }
         }
 
-        public BindingSource bindingSource = new BindingSource();
-
         public void GetData(string selectCommand)
         {
             try
             {
                 dataAdapter = new SQLiteDataAdapter(selectCommand, _connection);
-                SQLiteCommandBuilder commandBuilder = new SQLiteCommandBuilder(dataAdapter);
+                var commandBuilder = new SQLiteCommandBuilder(dataAdapter);
 
-                DataTable table = new DataTable { Locale = System.Globalization.CultureInfo.InvariantCulture };
+                var table = new DataTable {Locale = CultureInfo.InvariantCulture};
                 dataAdapter.Fill(table);
                 bindingSource.DataSource = table;
                 table.AcceptChanges();
@@ -162,7 +167,122 @@ namespace Lenze.Desktop.Database
             }
         }
 
-       /* public void Create(SynchronousMotorItems items)
+        public bool TruncateTable(string tableName)
+        {
+            using (var cmd = new SQLiteCommand())
+            {
+                cmd.Connection = _connection;
+
+                try
+                {
+                    var sh = new SQLiteHelper(cmd);
+                    sh.Execute("DELETE FROM @TableName;UPDATE sqlite_sequence SET seq = 0 WHERE name = '@TableName';",
+                        new[] {new SQLiteParameter("@TableName", tableName)});
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+        }
+
+        #endregion
+
+        #region ErrorLog
+        public long InsertErrorLog(ErrorList items)
+        {
+            using (var cmd = new SQLiteCommand())
+            {
+                cmd.Connection = _connection;
+
+                var sh = new SQLiteHelper(cmd);
+
+                var dic = new Dictionary<string, object>
+                {
+                    ["Module"] = items.Module,
+                    ["Name"] = items.Name,
+                    ["Message"] = items.Message,
+                    ["Exception"] = items.Exception,
+                    ["Date"] = items.Date
+                };
+
+                sh.Insert("ErrorList", dic);
+
+                return sh.LastInsertRowId();
+            }
+        }
+
+        #endregion
+
+        #region Setting
+
+        public long InsertSetting(string nameVal, string valueVal)
+        {
+            using (var cmd = new SQLiteCommand())
+            {
+                cmd.Connection = _connection;
+
+                var sh = new SQLiteHelper(cmd);
+
+                var dic = new Dictionary<string, object>
+                {
+                    ["name"] = nameVal,
+                    ["value"] = valueVal
+                };
+
+                var settingCheck = GetSettingsId(nameVal);
+                if (settingCheck > 0)
+                    sh.Update("Settings", dic, "id", settingCheck);
+                else
+                    sh.Insert("Settings", dic);
+
+                return sh.LastInsertRowId();
+            }
+        }
+
+        public string GetSettingsValue(string name)
+        {
+            using (var cmd = new SQLiteCommand())
+            {
+                cmd.Connection = _connection;
+
+                var sh = new SQLiteHelper(cmd);
+
+                var result = sh.ExecuteScalar<string>("SELECT value FROM Settings WHERE name = @name",
+                    new[] {new SQLiteParameter("@name", name)});
+
+
+                return result;
+            }
+        }
+
+        public long GetSettingsId(string name)
+        {
+            try
+            {
+                using (var cmd = new SQLiteCommand())
+                {
+                    cmd.Connection = _connection;
+
+                    var sh = new SQLiteHelper(cmd);
+
+                    var result = sh.ExecuteScalar<long>("SELECT id FROM Settings WHERE name = @name",
+                        new[] {new SQLiteParameter("@name", name)});
+
+                    return result;
+                }
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+        }
+        #endregion
+
+        #region SynchronousMotorItems
+
+        /* public void Create(SynchronousMotorItems items)
         {
             SQLiteCommand insertSQL =
                 new SQLiteCommand("INSERT INTO SynchronousMotors (name, LabelText, DataId, Type) VALUES (?,?,?,?)",
@@ -183,25 +303,6 @@ namespace Lenze.Desktop.Database
             }
         }
         */
-        public bool TruncateTable(string tableName)
-        {
-            using (var cmd = new SQLiteCommand())
-            {
-                cmd.Connection = _connection;
-
-                try
-                {
-                    var sh = new SQLiteHelper(cmd);
-                    sh.Execute("DELETE FROM @TableName;UPDATE sqlite_sequence SET seq = 0 WHERE name = '@TableName';", new SQLiteParameter[] { new SQLiteParameter("@TableName", tableName) });
-                    return true;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            }
-        }
-
         /*public long Insert(SynchronousMotorItems items)
         {
             using (SQLiteCommand cmd = new SQLiteCommand())
@@ -223,96 +324,7 @@ namespace Lenze.Desktop.Database
             }
         }*/
 
-        public long InsertErrorLog(ErrorList items)
-        {
-            using (SQLiteCommand cmd = new SQLiteCommand())
-            {
-                cmd.Connection = _connection;
-
-                var sh = new SQLiteHelper(cmd);
-
-                var dic = new Dictionary<string, object>
-                {
-                    ["Module"] = items.Module,
-                    ["Name"] = items.Name,
-                    ["Message"] = items.Message,
-                    ["Exception"] = items.Exception,
-                    ["Date"] = items.Date
-                };
-
-                sh.Insert("ErrorList", dic);
-
-                return sh.LastInsertRowId();
-            }
-        }
-
-        public long InsertSetting(string nameVal, string valueVal)
-        {
-
-            using (SQLiteCommand cmd = new SQLiteCommand())
-            {
-                cmd.Connection = _connection;
-
-                var sh = new SQLiteHelper(cmd);
-
-                var dic = new Dictionary<string, object>
-                {
-                    ["name"] = nameVal,
-                    ["value"] = valueVal
-                };
-
-                var settingCheck = GetSettingsId(nameVal);
-                if (settingCheck > 0)
-                {
-                    sh.Update("Settings", dic, "id", settingCheck);
-                }
-                else
-                {
-                    sh.Insert("Settings", dic);
-                }
-
-                return sh.LastInsertRowId();
-            }
-        }
-
-        public string GetSettingsValue(string name)
-        {
-            using (var cmd = new SQLiteCommand())
-            {
-                cmd.Connection = _connection;
-
-                var sh = new SQLiteHelper(cmd);
-
-                var result = sh.ExecuteScalar<string>("SELECT value FROM Settings WHERE name = @name", new SQLiteParameter[] { new SQLiteParameter("@name", name) });
-
-
-                return result;
-            }
-        }
-
-        public long GetSettingsId(string name)
-        {
-            try
-            {
-                using (var cmd = new SQLiteCommand())
-                {
-                    cmd.Connection = _connection;
-
-                    var sh = new SQLiteHelper(cmd);
-
-                    var result = sh.ExecuteScalar<long>("SELECT id FROM Settings WHERE name = @name", new SQLiteParameter[] { new SQLiteParameter("@name", name) });
-
-                    return result;
-                }
-            }
-            catch (Exception)
-            {
-                return 0;
-            }
-
-        }
-
-       /* public List<SynchronousMotorItems> SelectSynchronousMotor()
+        /*public List<SynchronousMotorItems> SelectSynchronousMotor()
         {
             var items = new List<SynchronousMotorItems>();
             using (var cmd = new SQLiteCommand())
@@ -336,7 +348,7 @@ namespace Lenze.Desktop.Database
                 try
                 {
                     var sh = new SQLiteHelper(cmd);
-                    sh.Execute("DELETE FROM SynchronousMotors WHERE id=@id", new SQLiteParameter[] { new SQLiteParameter("@id", id) });
+                    sh.Execute("DELETE FROM SynchronousMotors WHERE id=@id", new[] {new SQLiteParameter("@id", id)});
                     return 1;
                 }
                 catch (Exception)
@@ -345,6 +357,6 @@ namespace Lenze.Desktop.Database
                 }
             }
         }
+        #endregion
     }
-
 }

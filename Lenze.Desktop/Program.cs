@@ -80,8 +80,7 @@ namespace Lenze.Desktop
                         $"Stack : {LF}{ex.StackTrace}{LF}" +
                         $"InnerException : {ex.InnerException}";
 
-            MessageBox.Show(infos, title, MessageBoxButtons.OK,
-                MessageBoxIcon.Error); // Do logging of exception details
+            MessageBox.Show(infos, title, MessageBoxButtons.OK, MessageBoxIcon.Error); // Do logging of exception details
         }
     }
 }
