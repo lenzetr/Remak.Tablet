@@ -101,6 +101,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Database\Helper.cs" />
+    <Compile Include="Database\Model\TableErrorList.cs" />
+    <Compile Include="Database\Model\TableSettings.cs" />
     <Compile Include="Database\SQLite\SQLiteColumn.cs" />
     <Compile Include="Database\SQLite\SQLiteColumnList.cs" />
     <Compile Include="Database\SQLite\SQLiteHelper.cs" />

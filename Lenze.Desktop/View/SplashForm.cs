@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using Lenze.Desktop.Model;
+using Helper = Lenze.Desktop.Database.Helper;
 
 namespace Lenze.Desktop.View
 {
@@ -36,6 +37,8 @@ namespace Lenze.Desktop.View
             labelStatus.Refresh();
             Tools.CheckDatabaseStartup();
             Global.Database = new SQLLite();
+            Helper.CheckDatabaseTable();
+
             progressBar1.Value = 30;
             Thread.Sleep(1000);
             #endregion

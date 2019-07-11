@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
+using Lenze.Desktop.Database.Model;
 using Lenze.Desktop.Model;
 
 namespace Lenze.Desktop.Database
@@ -114,27 +115,11 @@ namespace Lenze.Desktop.Database
                 cmd.Connection = _connection;
 
                 var sh = new SQLiteHelper(cmd);
+                sh.DropTable(TableSettings.TableName);
+                sh.CreateTable(TableSettings.Build());
 
-                sh.DropTable("Settings");
-
-                var tbSettings = new SQLiteTable("Settings");
-                tbSettings.Columns.Add(new SQLiteColumn("id", true));
-                tbSettings.Columns.Add(new SQLiteColumn("name"));
-                tbSettings.Columns.Add(new SQLiteColumn("value"));
-                tbSettings.Columns.Add(new SQLiteColumn("status", ColType.Integer));
-                sh.CreateTable(tbSettings);
-
-
-                sh.DropTable("ErrorList");
-
-                var tbErrorList = new SQLiteTable("ErrorList");
-                tbErrorList.Columns.Add(new SQLiteColumn("id", true));
-                tbErrorList.Columns.Add(new SQLiteColumn("Module"));
-                tbErrorList.Columns.Add(new SQLiteColumn("Name"));
-                tbErrorList.Columns.Add(new SQLiteColumn("Message"));
-                tbErrorList.Columns.Add(new SQLiteColumn("Exception"));
-                tbErrorList.Columns.Add(new SQLiteColumn("Date", ColType.DateTime));
-                sh.CreateTable(tbErrorList);
+                sh.DropTable(TableErrorList.TableName);
+                sh.CreateTable(TableErrorList.Build());
             }
 
             firstOpenDb = false;
@@ -187,7 +172,44 @@ namespace Lenze.Desktop.Database
                 }
             }
         }
+        public bool CheckTable(string tableName)
+        {
+            var resultValue = false; 
+            using (var cmd = new SQLiteCommand())
+            {
+                cmd.Connection = _connection;
 
+                try
+                {
+                    var sh = new SQLiteHelper(cmd);
+                    var result = sh.ExecuteScalar<string>("SELECT [tbl_name] FROM[sqlite_master] WHERE type = 'table' AND tbl_name = '@TableName'", new[] {new SQLiteParameter("@TableName", tableName)});
+                    if (result != null)
+                    {
+                        if (result.Length > 0)
+                        {
+                            resultValue = true;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    resultValue = false;
+                }
+            }
+
+            return resultValue;
+        }
+        public void CreateTable(SQLiteTable table)
+        {
+            using (var cmd = new SQLiteCommand())
+            {
+                cmd.Connection = _connection;
+
+                var sh = new SQLiteHelper(cmd);
+                sh.DropTable(table.TableName);
+                sh.CreateTable(table);
+            }
+        }
         #endregion
 
         #region ErrorLog
@@ -359,5 +381,6 @@ namespace Lenze.Desktop.Database
             }
         }
         #endregion
+
     }
 }
