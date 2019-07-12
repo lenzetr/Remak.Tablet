@@ -45,13 +45,35 @@ namespace Lenze.Desktop.View
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom
                                           | AnchorStyles.Left
                                           | AnchorStyles.Right,
-                Location = new Point(429, 310),
-                Name = "waitControl1",
+
                 Size = new Size(391, 114),
+                //Location = new Point(429, 310),
+                Name = "waitControl1",
                 TabIndex = 0
             };
 
+            /*
+            _waitControl1.Location = new Point()
+            {
+                X = Screen.PrimaryScreen.WorkingArea.Size.Width / 2 - _waitControl1.Width / 2,
+                Y = Screen.PrimaryScreen.WorkingArea.Size.Height / 2 - _waitControl1.Height / 2
+            };
+            */
+            _waitControl1.Location = new Point()
+            {
+                X = Global.Size.Width / 2 - _waitControl1.Width / 2,
+                Y = Global.Size.Height / 2 - _waitControl1.Height / 2
+            };
+
             Controls.Add(_waitControl1);
+        }
+
+        protected override void OnResize(EventArgs e)
+        {
+            this.Location = new Point(0, 0);
+            this.Size = Global.Size;
+
+            base.OnResize(e);
         }
 
         protected override void OnPaintBackground(PaintEventArgs e)

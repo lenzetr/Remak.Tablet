@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.IO;
 using Lenze.Desktop.Model;
 
@@ -44,6 +45,8 @@ namespace Lenze.Desktop
         public static List<ErrorList> ErrorList { get; set; } = new List<ErrorList>();
         public static BackgroundWorker MainLoadWorker { get; set; }
         public static bool IsDisplayWait { get; set; }
+        public static Size Size { get; set; }
+
         public static void ErrorToDatabase(string module, string name, string message, Exception exc)
         {
             var log = new ErrorList{Module = module, Name = name, Message = message, Exception = exc.ToString()};

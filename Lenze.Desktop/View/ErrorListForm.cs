@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Windows.Forms;
-using Lenze.Desktop.Helpers;
-using Lenze.Desktop.Model;
+﻿using Lenze.Desktop.Model;
 using Lenze.Desktop.Services;
+using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace Lenze.Desktop.View
 {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
@@ -43,20 +44,27 @@ namespace Lenze.Desktop
             FormBorderStyle = FormBorderStyle.None;
             WindowState = FormWindowState.Maximized;
             TopMost = true;
-
 #endif
             //errorImage.Visible = false;
-
+            Global.Size = Size;
             _worker.DoWork += WorkerOnDoWork;
             Global.MainLoadWorker = _worker;
+
             var bg = new Background(BgRefresh);
             bg.Initialize(500);
             bg.Start();
         }
+        protected override void OnResize(EventArgs e)
+        {
+#if !DEBUG
+            this.Location = new Point(0, 0);
+            this.Size = Screen.PrimaryScreen.WorkingArea.Size;
+#endif
+            base.OnResize(e);
+        }
+#endregion
 
-        #endregion
-
-        #region Load Function
+#region Load Function
 
         private void MainForm_Load(object sender, EventArgs e)
         {
@@ -83,9 +91,9 @@ namespace Lenze.Desktop
             }
         }
 
-        #endregion
+#endregion
 
-        #region Workers
+#region Workers
 
         private bool[] _actuelButtonsArray;
         private double[] _actuelLrealArray;
@@ -173,9 +181,9 @@ namespace Lenze.Desktop
             }
         }
 
-        #endregion
+#endregion
 
-        #region Functions
+#region Functions
 
         private static void ProgessButtonFunction(GlassButton selectButton)
         {
@@ -263,6 +271,6 @@ namespace Lenze.Desktop
             return result;
         }
 
-        #endregion
+#endregion
     }
 }
