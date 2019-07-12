@@ -80,7 +80,11 @@ namespace Lenze.Desktop
                         $"Stack : {LF}{ex.StackTrace}{LF}" +
                         $"InnerException : {ex.InnerException}";
 
+            Global.ErrorToDatabase(title, "Main Application Error", infos, ex);
+
             MessageBox.Show(infos, title, MessageBoxButtons.OK, MessageBoxIcon.Error); // Do logging of exception details
+
+            Environment.Exit(0);
         }
     }
 }

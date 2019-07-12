@@ -48,7 +48,7 @@ namespace Lenze.Desktop
             //errorImage.Visible = false;
 
             _worker.DoWork += WorkerOnDoWork;
-
+            Global.MainLoadWorker = _worker;
             var bg = new Background(BgRefresh);
             bg.Initialize(500);
             bg.Start();
@@ -137,31 +137,34 @@ namespace Lenze.Desktop
 
         private void WorkerOnDoWork(object sender, DoWorkEventArgs doWorkEventArgs)
         {
+            const string noConnectionMessage = "PLC bağlantısı kurulamadı Lütfen bağlantınızı kontrol ederek tekar deneyiniz.";
+            if (Global.IsDisplayWait) return;
+
             using (var waitForm = new WaitFormTransparent(delegate
             {
+
                 try
                 {
                     Client.UaConnection();
                 }
-                catch (Exception xException)
+                catch (Exception exception)
                 {
-                    Console.WriteLine(xException);
-
-                    Notify.Show(xException.Message, "Hata!", ToolTipIcon.Error);
-
-                    Global.ErrorToDatabase("Connection", "Connection Error", xException.Message,xException);
-
-                }
-                finally
-                {
-                    if (Client.ConnectionStatus)
+                    if (exception.Message == "BadRequestTimeout")
                     {
-                        //labelBottom.Text = @"Connect";
+                        Notify.Show(noConnectionMessage, "Hata!", ToolTipIcon.Error);
+                        Global.ErrorToDatabase("Connection", "Connection Error", noConnectionMessage, exception);
                     }
                     else
                     {
-                        Notify.Show("PLC bağlantısı kurulamadı Lütfen bağlantınızı kontrol ederek tekar deneyiniz.",
-                            "Dikkat!", ToolTipIcon.Error, (o, args) => _worker.RunWorkerAsync());
+                        Notify.Show(exception.Message, "Hata!", ToolTipIcon.Error);
+                        Global.ErrorToDatabase("Connection", "Connection Error", exception.Message, exception);
+                    }
+                }
+                finally
+                {
+                    if (!Client.ConnectionStatus)
+                    {
+                        Notify.Show(noConnectionMessage,"Dikkat!", ToolTipIcon.Error);
                     }
                 }
             }, "PLC bağlanıyor lütfen bekleyiniz...."))

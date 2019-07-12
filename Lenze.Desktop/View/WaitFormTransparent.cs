@@ -8,6 +8,7 @@ namespace Lenze.Desktop.View
     public partial class WaitFormTransparent : Form
     {
         private WaitControl _waitControl1;
+        private System.Windows.Forms.Timer _timer;
 
         public WaitFormTransparent(Action worker)
         {
@@ -62,15 +63,28 @@ namespace Lenze.Desktop.View
         {
             base.OnLoad(e);
             TopMost = true;
+            Global.IsDisplayWait = true;
+
+            _timer = new System.Windows.Forms.Timer();
+            _timer.Tick += _timer_Tick;
+            _timer.Interval = (int)TimeSpan.FromMinutes(1).TotalMilliseconds;
+            _timer.Start();
 
             //Start new thread to run wait form dialog
             Task.Factory.StartNew(Worker)
                 .ContinueWith(t => { Close(); }, TaskScheduler.FromCurrentSynchronizationContext());
+
+        }
+
+        private void _timer_Tick(object sender, EventArgs e)
+        {
+            this.Close();
         }
 
         private void WaitFormTransparent_FormClosing(object sender, FormClosingEventArgs e)
         {
             TopMost = false;
+            Global.IsDisplayWait = false;
         }
     }
 }
